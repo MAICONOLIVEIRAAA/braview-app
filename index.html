@@ -20,14 +20,12 @@
             display: flex; justify-content: center; align-items: center;
             transition: opacity 0.8s ease-out;
         }
-        /* MUDANÇA: Exibir a logo em vez de texto */
         #splash-screen img {
             max-width: 250px;
             max-height: 150px;
             text-shadow: 2px 2px 10px rgba(255, 0, 80, 0.5); 
             animation: pulseOpacity 1.5s infinite;
         }
-        /* MUDANÇA: Animação mais suave para a logo */
         @keyframes pulseOpacity { 
             0% { opacity: 0.8; } 
             50% { opacity: 1; } 
@@ -49,16 +47,15 @@
         .view-section::-webkit-scrollbar { display: none; }
         #feedView, #liveView { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 
-        /* --- MUDANÇA: Navegação do Topo (Com Logo) --- */
+        /* Navegação do Topo (Com Logo) */
         .top-nav { 
             position: absolute; top: 20px; width: 100%; max-width: 450px; 
-            display: flex; justify-content: space-between; /* Espaçar logo e botão */
+            display: flex; justify-content: space-between; 
             padding: 0 20px; z-index: 10; 
             align-items: center;
         }
-        /* Nova classe para a logo no feed */
         .header-logo {
-            height: 40px; /* Tamanho discreto */
+            height: 40px; 
             width: auto;
         }
         .nav-btn { background: rgba(0,0,0,0.5); border: 1px solid white; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
@@ -130,15 +127,14 @@
         .message-content h4 { margin-bottom: 5px; font-size: 16px; }
         .message-content p { color: #aaa; font-size: 14px; }
         
-        /* --- MUDANÇA: Barra Superior do Perfil (Com Logo) --- */
+        /* Barra Superior do Perfil (Com Logo) */
         .profile-top-bar { 
-            display: flex; justify-content: space-between; /* Espaçar logo e menu */
+            display: flex; justify-content: space-between; 
             padding: 15px 20px; font-size: 24px; border-bottom: 1px solid #222; 
             align-items: center;
         }
-        /* Nova classe para a logo no perfil */
         .profile-header-logo {
-            height: 40px; /* Tamanho discreto */
+            height: 40px; 
             width: auto;
         }
         .menu-trigger { cursor: pointer; transition: transform 0.2s; }
@@ -184,14 +180,14 @@
 <body>
 
     <div id="splash-screen">
-        <img src="image_1.png" alt="BRAview Logo">
+        <img src="logo.jpg" alt="BRAview Logo">
     </div>
 
     <div class="app-wrapper">
         
         <div id="feedView" class="view-section active">
             <div class="top-nav">
-                <img src="image_1.png" alt="BRAview Logo" class="header-logo">
+                <img src="logo.jpg" alt="BRAview Logo" class="header-logo">
                 <button class="nav-btn" onclick="toggleLogin()">Login</button>
             </div>
             
@@ -263,7 +259,7 @@
 
         <div id="profileView" class="view-section">
             <div class="profile-top-bar">
-                <img src="image_1.png" alt="BRAview Logo" class="profile-header-logo">
+                <img src="logo.jpg" alt="BRAview Logo" class="profile-header-logo">
                 <span class="menu-trigger" onclick="abrirConfiguracoes()">☰</span>
             </div>
             
