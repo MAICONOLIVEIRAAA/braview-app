@@ -2,261 +2,214 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>🤖 IA Monitor de TV em Tempo Real</title>
+    <title>🤖 IA Monitor de Canais Gêmeos (Filtrado)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121214;
             color: #ffffff;
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        button {
-            background-color: #00b4d8;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        button { background-color: #00b4d8; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
         button:hover { background-color: #0077b6; }
         #btnParar { background-color: #e63946; }
         #btnParar:hover { background-color: #c1121f; }
         
-        .monitor-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        video, canvas {
-            width: 100%;
-            background: #1a1a1e;
-            border-radius: 8px;
-            border: 2px solid #2a2a30;
-        }
-        .status-box {
-            background: #1a1a1e;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            border-left: 6px solid #6c757d;
-        }
-        .status-comercial {
-            border-left-color: #e63946;
-            color: #e63946;
-            animation: piscar 1s infinite alternate;
-        }
-        .status-normal {
-            border-left-color: #2a9d8f;
-            color: #2a9d8f;
-        }
-        .log-container {
-            background: #1a1a1e;
-            padding: 15px;
-            border-radius: 8px;
-            height: 250px;
-            overflow-y: auto;
-            font-family: monospace;
-            border: 1px solid #2a2a30;
-        }
-        .log-entry {
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #2a2a30;
-        }
-        @keyframes piscar {
-            from { opacity: 1; } to { opacity: 0.6; }
-        }
+        .monitor-area { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        video, canvas { width: 100%; background: #1a1a1e; border-radius: 8px; border: 2px solid #2a2a30; }
+        .status-box { background: #1a1a1e; padding: 15px; border-radius: 8px; text-align: center; font-size: 20px; font-weight: bold; border-left: 6px solid #6c757d; margin-bottom: 20px; }
+        .status-divergente { border-left-color: #e63946; color: #e63946; animation: piscar 1s infinite alternate; }
+        .status-sincronizado { border-left-color: #2a9d8f; color: #2a9d8f; }
+        .log-container { background: #1a1a1e; padding: 15px; border-radius: 8px; height: 250px; overflow-y: auto; font-family: monospace; border: 1px solid #2a2a30; }
+        .log-entry { margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #2a2a30; }
+        @keyframes piscar { from { opacity: 1; } to { opacity: 0.6; } }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Monitor de Inserção de Mídia</h1>
-        <p>Selecione a aba da transmissão da TV para iniciar a auditoria automatizada.</p>
+        <h1>Monitor de Inserção de Mídia (Anti-Falso Positivo)</h1>
+        <p>Inteligência de tempo adicionada para ignorar cortes de câmera e atrasos de rede.</p>
     </div>
 
     <div class="controls">
-        <button id="btnIniciar">▶ Vincular e Iniciar Canal</button>
-        <button id="btnParar" style="display:none;">⏹ Parar</button>
+        <button id="btnVincularCanal1">🔗 1. Vincular Canal Principal</button>
+        <button id="btnVincularCanal2" style="display:none;">🔗 2. Vincular Canal Regional</button>
+        <button id="btnParar" style="display:none;">⏹ Parar Monitoramento</button>
     </div>
 
-    <div class="status-box status-normal" id="statusPainel">
-        Status: Aguardando Inicialização...
+    <div class="status-box" id="statusPainel" style="color: #6c757d;">
+        Status: Aguardando vinculação dos dois canais...
     </div>
 
     <div class="monitor-area">
         <div>
-            <h3>O que o Robô está Assistindo:</h3>
-            <video id="videoFeed" autoplay playsinline muted></video>
+            <h3>Canal 1 (Principal):</h3>
+            <video id="videoFeed1" autoplay playsinline muted></video>
         </div>
         <div>
-            <h3>Visão Matemática do Robô (Diferença de Frames):</h3>
-            <!-- O canvas serve para calcular matematicamente a variação de cores e luz -->
-            <canvas id="canvasProcessamento"></canvas>
+            <h3>Canal 2 (Regional):</h3>
+            <video id="videoFeed2" autoplay playsinline muted></video>
+        </div>
+        <div>
+            <h3>Filtro de Divergência:</h3>
+            <canvas id="canvasDiferenca"></canvas>
         </div>
     </div>
 
-    <h3>📊 Relatório de Ocorrências (Tempo Real)</h3>
+    <h3>📊 Relatório de Comercialização Diferenciada</h3>
     <div class="log-container" id="logPainel">
-        <div class="log-entry" style="color: #6c757d;">O histórico de inserções comerciais aparecerá aqui...</div>
+        <div class="log-entry" style="color: #6c757d;">O histórico de inserções comerciais reais aparecerá aqui...</div>
     </div>
 
     <script>
-        const video = document.getElementById('videoFeed');
-        const canvas = document.getElementById('canvasProcessamento');
+        const video1 = document.getElementById('videoFeed1');
+        const video2 = document.getElementById('videoFeed2');
+        const canvas = document.getElementById('canvasDiferenca');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        const btnIniciar = document.getElementById('btnIniciar');
+        const btnCanal1 = document.getElementById('btnVincularCanal1');
+        const btnCanal2 = document.getElementById('btnVincularCanal2');
         const btnParar = document.getElementById('btnParar');
         const statusPainel = document.getElementById('statusPainel');
         const logPainel = document.getElementById('logPainel');
 
-        let streamAtivo = null;
-        let loopAnimacao = null;
-        let frameAnteriorPixels = null;
+        let stream1 = null, stream2 = null, loopAnimacao = null;
         
-        // Variáveis de controle do comercial
+        // --- PARÂMETROS DE CONTROLE DO ROBÔ ---
+        const LIMIAR_DIVERGENCIA = 45;       // Sensibilidade de cor/brilho
+        const TEMPO_CONFIRMAR_INICIO = 2000; // (2 segundos) Tempo mínimo divergente para ser comercial
+        const TEMPO_CONFIRMAR_FIM = 3000;    // (3 segundos) Tempo mínimo estável para encerrar o comercial
+
+        // Variáveis de Estado
         let emComercial = false;
-        let horarioInicio = null;
+        let horarioInicioReal = null;
+        
+        // Timestamps para filtros de persistência
+        let primeiroMomentoDivergente = null;
+        let primeiroMomentoIgual = null;
 
-        // CONFIGURAÇÃO DO ROBÔ: Ajuste a sensibilidade aqui se necessário
-        const LIMIAR_SENSIBILIDADE = 25; 
+        const canvasOculto1 = document.createElement('canvas');
+        const canvasOculto2 = document.createElement('canvas');
+        const ctx1 = canvasOculto1.getContext('2d', { willReadFrequently: true });
+        const ctx2 = canvasOculto2.getContext('2d', { willReadFrequently: true });
 
-        btnIniciar.addEventListener('click', async () => {
+        canvasOculto1.width = canvasOculto2.width = canvas.width = 160;
+        canvasOculto1.height = canvasOculto2.height = canvas.height = 90;
+
+        btnCanal1.addEventListener('click', async () => {
             try {
-                // Abre a janela do Chrome pedindo para o usuário escolher a tela/aba da TV
-                streamAtivo = await navigator.mediaDevices.getDisplayMedia({
-                    video: { displaySurface: "browser" }, // Otimiza para abas do Chrome
-                    audio: false
-                });
-                
-                video.srcObject = streamAtivo;
-                btnIniciar.style.display = 'none';
-                btnParar.style.display = 'inline-block';
-                
-                statusPainel.className = "status-box status-normal";
-                statusPainel.innerText = "Status: Programação Normal (Monitorando...)";
-                
-                // Inicia o processamento visual assim que o vídeo começar a rodar
-                video.onloadedmetadata = () => {
-                    canvas.width = 160; // Resolução baixa para processar ultra rápido sem travar
-                    canvas.height = 90;
-                    loopAnalise();
-                };
-            } catch (err) {
-                console.error("Erro ao capturar a aba: ", err);
-                alert("Você precisa permitir a captura da aba para o robô funcionar.");
-            }
+                stream1 = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, audio: false });
+                video1.srcObject = stream1;
+                btnCanal1.style.display = 'none';
+                btnCanal2.style.display = 'inline-block';
+                statusPainel.innerText = "Status: Canal 1 Vinculado. Agora vincule o Canal 2.";
+            } catch (err) { alert("Permissão necessária."); }
         });
 
-        btnParar.addEventListener('click', pararMonitoramento);
+        btnCanal2.addEventListener('click', async () => {
+            try {
+                stream2 = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, audio: false });
+                video2.srcObject = stream2;
+                btnCanal2.style.display = 'none';
+                btnParar.style.display = 'inline-block';
+                statusPainel.className = "status-box status-sincronizado";
+                statusPainel.innerText = "Status: Canais Sincronizados (Monitorando...)";
+                loopAnalise();
+            } catch (err) { alert("Permissão necessária."); }
+        });
 
-        function pararMonitoramento() {
-            if (streamAtivo) {
-                streamAtivo.getTracks().forEach(track => track.stop());
-            }
+        btnParar.addEventListener('click', () => {
+            if (stream1) stream1.getTracks().forEach(track => track.stop());
+            if (stream2) stream2.getTracks().forEach(track => track.stop());
             cancelAnimationFrame(loopAnimacao);
-            btnIniciar.style.display = 'inline-block';
-            btnParar.style.display = 'none';
-            statusPainel.className = "status-box";
-            statusPainel.style.borderLeftColor = "#6c757d";
-            statusPainel.style.color = "#6c757d";
-            statusPainel.innerText = "Status: Interrompido";
-            frameAnteriorPixels = null;
-        }
+            btnCanal1.style.display = 'inline-block'; btnCanal2.style.display = 'none'; btnParar.style.display = 'none';
+            statusPainel.className = "status-box"; statusPainel.innerText = "Status: Interrompido";
+        });
 
         function loopAnalise() {
-            if (video.paused || video.ended) {
+            if (video1.paused || video1.ended || video2.paused || video2.ended) {
                 loopAnimacao = requestAnimationFrame(loopAnalise);
                 return;
             }
 
-            // Desenha o frame atual reduzido no canvas
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx1.drawImage(video1, 0, 0, canvas.width, canvas.height);
+            ctx2.drawImage(video2, 0, 0, canvas.width, canvas.height);
             
-            // Pega os dados brutos de pixels do frame atual
-            const frameAtualData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const pixelsData = frameAtualData.data;
+            const pixels1 = ctx1.getImageData(0, 0, canvas.width, canvas.height).data;
+            const pixels2 = ctx2.getImageData(0, 0, canvas.width, canvas.height).data;
+            const imgDiferenca = ctx.createImageData(canvas.width, canvas.height);
+            const pixelsDiff = imgDiferenca.data;
 
-            if (frameAnteriorPixels) {
-                let totalDiferenca = 0;
-                let totalPixels = pixelsData.length;
+            let totalDiferenca = 0;
+            let totalPixels = pixels1.length;
 
-                // Compara a mudança de brilho pixel por pixel entre o frame atual e o anterior
-                for (let i = 0; i < totalPixels; i += 4) {
-                    let brilhoAtual = (pixelsData[i] + pixelsData[i+1] + pixelsData[i+2]) / 3;
-                    let brilhoAnterior = (frameAnteriorPixels[i] + frameAnteriorPixels[i+1] + frameAnteriorPixels[i+2]) / 3;
-                    
-                    totalDiferenca += Math.abs(brilhoAtual - brilhoAnterior);
-                }
+            for (let i = 0; i < totalPixels; i += 4) {
+                let diffR = Math.abs(pixels1[i] - pixels2[i]);
+                let diffG = Math.abs(pixels1[i+1] - pixels2[i+1]);
+                let diffB = Math.abs(pixels1[i+2] - pixels2[i+2]);
+                
+                totalDiferenca += (diffR + diffG + diffB) / 3;
 
-                // Média de mudança global no frame
-                let mediaVariacao = totalDiferenca / (totalPixels / 4);
+                pixelsDiff[i] = diffR; pixelsDiff[i+1] = diffG; pixelsDiff[i+2] = diffB; pixelsDiff[i+3] = 255;
+            }
 
-                // SE DETECTAR MUDANÇA BRUSCA (Corte de cena / entrada de comercial)
-                if (mediaVariacao > LIMIAR_SENSIBILIDADE) {
-                    const agora = new Date();
-                    const horarioFormatado = agora.toLocaleTimeString('pt-BR');
+            ctx.putImageData(imgDiferenca, 0, 0);
+            let mediaVariacao = totalDiferenca / (totalPixels / 4);
+            const agora = new Date();
 
-                    if (!emComercial) {
-                        // Entrada do Comercial
+            // CASO A: AS ABAS ESTÃO DIVERGENTES AGORA
+            if (mediaVariacao > LIMIAR_DIVERGENCIA) {
+                primeiroMomentoIgual = null; // Reseta o filtro de estabilidade
+
+                if (!emComercial) {
+                    if (!primeiroMomentoDivergente) {
+                        primeiroMomentoDivergente = agora; // Começa a contar o tempo de suspeita
+                    } else if (agora - primeiroMomentoDivergente > TEMPO_CONFIRMAR_INICIO) {
+                        // Passou 2 segundos direto sendo diferente? É COMERCIAL REAL!
                         emComercial = true;
-                        horarioInicio = agora;
+                        horarioInicioReal = primeiroMomentoDivergente; // O comercial começou na verdade há 2s atrás
+                        statusPainel.className = "status-box status-divergente";
+                        statusPainel.innerText = `🚨 COMERCIALIZAÇÃO REGIONAL DETECTADA! (Iniciou às ${horarioInicioReal.toLocaleTimeString('pt-BR')})`;
+                    }
+                }
+            } 
+            // CASO B: AS ABAS ESTÃO IGUAIS AGORA
+            else {
+                primeiroMomentoDivergente = null; // Reseta o filtro de início
+
+                if (emComercial) {
+                    if (!primeiroMomentoIgual) {
+                        primeiroMomentoIgual = agora; // Começa a vigiar se a programação voltou de verdade
+                    } else if (agora - primeiroMomentoIgual > TEMPO_CONFIRMAR_FIM) {
+                        // Ficou igual por 3 segundos seguidos? O bloco comercial acabou!
+                        const horarioFimReal = primeiroMomentoIgual; // Acabou no momento em que estabilizou
+                        const duracaoSegundos = ((horarioFimReal - horarioInicioReal) / 1000).toFixed(1);
                         
-                        statusPainel.className = "status-box status-comercial";
-                        statusPainel.innerText = `🚨 EM COMERCIALIZAÇÃO (Iniciou às ${horarioFormatado})`;
-                    } else {
-                        // Saída do Comercial (Volta à programação ou troca de bloco)
-                        const duracaoSegundos = ((agora - horarioInicio) / 1000).toFixed(1);
+                        adicionarLog(horarioInicioReal.toLocaleTimeString('pt-BR'), horarioFimReal.toLocaleTimeString('pt-BR'), duracaoSegundos);
                         
-                        // Ignora variações bobas de menos de 4 segundos para evitar alarmes falsos
-                        if (duracaoSegundos > 4) {
-                            adicionarLog(horarioInicio.toLocaleTimeString('pt-BR'), horarioFormatado, duracaoSegundos);
-                            
-                            statusPainel.className = "status-box status-normal";
-                            statusPainel.innerText = "Status: Programação Normal (Monitorando...)";
-                            emComercial = false;
-                        }
+                        statusPainel.className = "status-box status-sincronizado";
+                        statusPainel.innerText = "Status: Canais Sincronizados (Monitorando...)";
+                        
+                        emComercial = false;
+                        horarioInicioReal = null;
+                        primeiroMomentoIgual = null;
                     }
                 }
             }
 
-            // Guarda os pixels atuais para comparar no próximo frame
-            frameAnteriorPixels = pixelsData;
-            
-            // Fica repetindo esse ciclo continuamente
             loopAnimacao = requestAnimationFrame(loopAnalise);
         }
 
         function adicionarLog(inicio, fim, duracao) {
-            // Limpa o texto padrão inicial se for o primeiro log
-            if (logPainel.innerText.includes("O histórico de inserções")) {
-                logPainel.innerHTML = "";
-            }
-
+            if (logPainel.innerText.includes("O histórico de inserções")) logPainel.innerHTML = "";
             const novaOcorrencia = document.createElement('div');
             novaOcorrencia.className = 'log-entry';
-            novaOcorrencia.innerHTML = `⚠️ <strong>Inserção Detectada:</strong> Iniciou às <span style="color:#00b4d8">${inicio}</span> | Terminou às <span style="color:#00b4d8">${fim}</span> | ⏱️ <strong>Duração:</strong> <span style="color:#e63946; font-size:16px;">${duracao} seg</span>`;
-            
-            // Joga o log mais recente sempre para o topo
+            novaOcorrencia.innerHTML = `⚠️ <strong>Comercialização Diferenciada:</strong> Das <span style="color:#00b4d8">${inicio}</span> às <span style="color:#00b4d8">${fim}</span> | ⏱️ <strong>Duração Real:</strong> <span style="color:#e63946; font-size:16px;">${duracao} seg</span>`;
             logPainel.insertBefore(novaOcorrencia, logPainel.firstChild);
         }
     </script>
